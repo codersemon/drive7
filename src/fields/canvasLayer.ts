@@ -127,9 +127,14 @@ const placement = (
 const designMode = (data?: Partial<{ showDesignControls: boolean }>) =>
   Boolean(data?.showDesignControls)
 
+/**
+ * Shows a field only for the given layer types. Payload calls conditions with
+ * positional arguments — (data, siblingData) — where `siblingData` is the
+ * layer row itself.
+ */
 const typeIs =
   (...types: string[]) =>
-  ({ siblingData }: { siblingData?: Partial<{ type: string }> }) =>
+  (_data: unknown, siblingData?: Partial<{ type: string }>) =>
     types.includes(siblingData?.type ?? '')
 
 const contentFields: Field[] = [
