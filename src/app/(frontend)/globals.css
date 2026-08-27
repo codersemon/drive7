@@ -1,0 +1,715 @@
+/* ------------------------------------------------------------------ *
+ * Fonts
+ * ------------------------------------------------------------------ */
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-ExtraLight.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-Light.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-Medium.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-SemiBold.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-Black.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Shubbak';
+  src: url('/fonts/Shubbak-ExtraBold.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Reset
+ * ------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--body-bg, #000);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: 'Shubbak', sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+  body {
+    font-size: 17px;
+  }
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+  font-weight: inherit;
+}
+
+/* ------------------------------------------------------------------ *
+ * Canvas sections
+ *
+ * A section is a fixed-height band. Inside it sits a design-width box that
+ * caps at the breakpoint's design width and shrinks below it. Because that box
+ * is a size container, `1cqw` equals 1% of its width — so a design length L is
+ * written as `L / designWidth * 100` cqw and scales exactly like the original.
+ * ------------------------------------------------------------------ */
+.dp-section {
+  position: relative;
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.dp-canvas {
+  position: relative;
+  container-type: inline-size;
+  width: min(100%, var(--design-width));
+  height: var(--canvas-height);
+  /* Layers are free to extend past the canvas; the band clips them, exactly
+     like the source site (e.g. the ceramic-coating car reaches well above and
+     below its section). */
+  overflow: hidden;
+}
+
+.dp-section {
+  --design-width: 1280px;
+  --canvas-height: var(--h-desktop);
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .dp-section {
+    --design-width: 1024px;
+    --canvas-height: var(--h-tablet);
+  }
+}
+
+@media (max-width: 767px) {
+  .dp-section {
+    --design-width: 360px;
+    --canvas-height: var(--h-mobile);
+  }
+}
+
+.dp-section[data-full-bleed='true'] {
+  padding-inline: 0;
+  --design-width: 100%;
+}
+
+/* Sections whose canvas is hidden on a breakpoint collapse to their padding,
+   exactly like the empty spacer bands on the source site. */
+.dp-section[data-hide-desktop='true'] .dp-canvas {
+  display: none;
+}
+.dp-section[data-hide-desktop='true'] {
+  height: 20px;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .dp-section[data-hide-desktop='true'] .dp-canvas {
+    display: block;
+  }
+  .dp-section[data-hide-desktop='true'] {
+    height: auto;
+  }
+  .dp-section[data-hide-tablet='true'] .dp-canvas {
+    display: none;
+  }
+  .dp-section[data-hide-tablet='true'] {
+    height: 20px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dp-section[data-hide-desktop='true'] .dp-canvas,
+  .dp-section[data-hide-tablet='true'] .dp-canvas {
+    display: block;
+  }
+  .dp-section[data-hide-desktop='true'],
+  .dp-section[data-hide-tablet='true'] {
+    height: auto;
+  }
+  .dp-section[data-hide-mobile='true'] .dp-canvas {
+    display: none;
+  }
+  .dp-section[data-hide-mobile='true'] {
+    height: 20px;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Layers — one rule set per breakpoint, reading the inline custom props
+ * emitted by lib/canvas.ts. Tablet and mobile fall back to the desktop var.
+ * ------------------------------------------------------------------ */
+.dp-layer {
+  position: absolute;
+  margin: 0;
+  display: var(--d-display, block);
+  left: var(--d-left, 0);
+  top: var(--d-top, 0);
+  width: var(--d-width, auto);
+  height: var(--d-height, auto);
+  translate: var(--d-translate, 0 0);
+  font-size: var(--d-font-size, inherit);
+  line-height: var(--d-line-height, normal);
+  font-weight: var(--d-font-weight, 400);
+  letter-spacing: var(--d-letter-spacing, normal);
+  text-align: var(--d-text-align, start);
+  color: var(--d-color, inherit);
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .dp-layer {
+    display: var(--t-display, var(--d-display, block));
+    left: var(--t-left, var(--d-left, 0));
+    top: var(--t-top, var(--d-top, 0));
+    width: var(--t-width, var(--d-width, auto));
+    height: var(--t-height, var(--d-height, auto));
+    translate: var(--t-translate, var(--d-translate, 0 0));
+    font-size: var(--t-font-size, var(--d-font-size, inherit));
+    line-height: var(--t-line-height, var(--d-line-height, normal));
+    font-weight: var(--t-font-weight, var(--d-font-weight, 400));
+    letter-spacing: var(--t-letter-spacing, var(--d-letter-spacing, normal));
+    text-align: var(--t-text-align, var(--d-text-align, start));
+    color: var(--t-color, var(--d-color, inherit));
+  }
+}
+
+@media (max-width: 767px) {
+  .dp-layer {
+    display: var(--m-display, var(--d-display, block));
+    left: var(--m-left, var(--d-left, 0));
+    top: var(--m-top, var(--d-top, 0));
+    width: var(--m-width, var(--d-width, auto));
+    height: var(--m-height, var(--d-height, auto));
+    translate: var(--m-translate, var(--d-translate, 0 0));
+    font-size: var(--m-font-size, var(--d-font-size, inherit));
+    line-height: var(--m-line-height, var(--d-line-height, normal));
+    font-weight: var(--m-font-weight, var(--d-font-weight, 400));
+    letter-spacing: var(--m-letter-spacing, var(--d-letter-spacing, normal));
+    text-align: var(--m-text-align, var(--d-text-align, start));
+    color: var(--m-color, var(--d-color, inherit));
+  }
+}
+
+.dp-layer--text {
+  white-space: pre-line;
+  /* The page is RTL, but individual layers may hold Latin copy ("Care.").
+     Let each paragraph take its direction from its own first strong character
+     so trailing punctuation lands on the correct side. */
+  unicode-bidi: plaintext;
+}
+
+.dp-layer__text,
+.dp-layer__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* unicode-bidi does not inherit, so the element that actually holds the text
+   needs it too. */
+.dp-layer__text {
+  unicode-bidi: plaintext;
+}
+
+.dp-layer--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: var(--object-fit, contain);
+  object-position: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+.dp-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(70, 70, 70, 0.2);
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.dp-button--solid {
+  background-color: var(--brand-red, #ee0606);
+  color: #fff;
+}
+
+.dp-button--solid:hover {
+  background-color: #cb0404;
+}
+
+.dp-button--outline {
+  background-color: transparent;
+  color: #fff;
+  border: 2px solid #707070;
+}
+
+.dp-button--outline:hover {
+  border-color: #fff;
+}
+
+.dp-button__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Layer entrance animations
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  .dp-layer[data-animate]:not([data-animate='none']) {
+    opacity: 0;
+    animation: dp-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: var(--anim-delay, 0ms);
+  }
+  .dp-layer[data-animate='up'] {
+    animation-name: dp-up;
+  }
+  .dp-layer[data-animate='down'] {
+    animation-name: dp-down;
+  }
+  .dp-layer[data-animate='left'] {
+    animation-name: dp-left;
+  }
+  .dp-layer[data-animate='right'] {
+    animation-name: dp-right;
+  }
+}
+
+@keyframes dp-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dp-up {
+  from {
+    opacity: 0;
+    transform: translateY(35px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dp-down {
+  from {
+    opacity: 0;
+    transform: translateY(-35px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dp-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dp-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Header
+ * ------------------------------------------------------------------ */
+.site-header {
+  position: relative;
+  z-index: 10;
+  background: var(--header-bg, #000);
+  height: var(--header-h-desktop);
+}
+
+.site-header[data-sticky='true'] {
+  position: sticky;
+  top: 0;
+}
+
+.site-header__inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--header-gap, 35px);
+  height: 100%;
+  width: 100%;
+}
+
+.site-header__nav {
+  display: flex;
+  justify-content: center;
+  width: var(--nav-width, 62.6%);
+}
+
+.site-header__menu {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.site-header__menu a {
+  display: flex;
+  align-items: center;
+  padding: var(--link-py, 13px) var(--link-px, 14px);
+  font-size: var(--link-fs, 20px);
+  line-height: var(--link-lh, 30px);
+  letter-spacing: -0.5px;
+  color: var(--link-color, #706e6e);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+/* The source site keeps the colour and underlines on hover only — the current
+   page is not underlined. */
+.site-header__menu a:hover {
+  color: var(--link-active-color, #706e6e);
+  text-decoration: underline;
+}
+
+.site-header__logo {
+  flex: 0 0 auto;
+  translate: 0 var(--logo-offset, -4px);
+}
+
+.site-header__logo svg,
+.site-header__logo img {
+  width: var(--logo-w, 186px);
+  height: auto;
+}
+
+.site-header__toggle {
+  display: none;
+  width: 37.5px;
+  height: 37.5px;
+  padding: 6.25px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  color: #514f4f;
+}
+
+.site-header__toggle svg {
+  width: 25px;
+  height: 25px;
+  fill: currentColor;
+}
+
+/* The source site collapses the header above 1760px by pulling the logo out of
+   flow with negative margins; the net effect is a much shorter bar. */
+@media (min-width: 1760px) {
+  .site-header {
+    height: var(--header-h-widescreen);
+  }
+  .site-header__logo {
+    margin-left: var(--logo-ml-widescreen, 46px);
+    margin-right: var(--logo-mr-widescreen, 136px);
+    translate: 0 var(--logo-offset-widescreen, -1px);
+  }
+  /* The source shifts the menu toward the logo with an overflowing margin on
+     the nav widget; a physical nudge reproduces it without RTL flex quirks. */
+  .site-header__nav > nav {
+    translate: var(--nav-shift-widescreen, 178px) 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .site-header {
+    height: var(--header-h-tablet);
+  }
+}
+
+@media (max-width: 767px) {
+  .site-header {
+    height: var(--header-h-mobile);
+  }
+  .site-header__inner {
+    gap: 0;
+    justify-content: space-between;
+    padding-inline: 24px;
+  }
+  .site-header__nav {
+    width: auto;
+  }
+  .site-header__menu {
+    display: none;
+  }
+  .site-header__toggle {
+    display: flex;
+  }
+  .site-header__logo {
+    translate: 0 var(--logo-offset-mobile, -2px);
+  }
+  .site-header__logo svg,
+  .site-header__logo img {
+    width: var(--logo-w-mobile, 119px);
+  }
+}
+
+/* Mobile drawer */
+.site-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.96);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.site-drawer__close {
+  align-self: flex-start;
+  width: 40px;
+  height: 40px;
+  color: #fff;
+}
+
+.site-drawer__close svg {
+  width: 26px;
+  height: 26px;
+  fill: currentColor;
+}
+
+.site-drawer a {
+  display: block;
+  padding: 14px 4px;
+  font-size: 20px;
+  line-height: 30px;
+  color: #d3d3d3;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer
+ * ------------------------------------------------------------------ */
+.site-footer {
+  position: relative;
+  background: var(--footer-bg, #3d3d3d);
+  padding-inline: var(--footer-gutter, 80px);
+  padding-block: var(--footer-pt, 120px) var(--footer-pb, 160px);
+}
+
+.site-footer__overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--footer-overlay, transparent);
+  opacity: var(--footer-overlay-opacity, 0);
+  pointer-events: none;
+}
+
+.site-footer__inner {
+  position: relative;
+  max-width: 1280px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-right: var(--footer-offset, 120px);
+}
+
+.site-footer__social {
+  display: flex;
+  flex-direction: row;
+}
+
+.site-footer__social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-box, 32.4px);
+  height: var(--icon-box, 32.4px);
+  color: var(--icon-color, rgba(255, 255, 255, 0.82));
+  transition: opacity 0.2s ease;
+}
+
+.site-footer__social a:hover {
+  opacity: 0.65;
+}
+
+.site-footer__social svg {
+  width: var(--icon-size, 18px);
+  height: var(--icon-size, 18px);
+  fill: currentColor;
+}
+
+.site-footer__links {
+  margin-top: var(--links-mt, 15px);
+  text-align: center;
+  font-size: var(--footer-link-fs, 18px);
+  line-height: var(--footer-link-lh, 30.7px);
+  color: var(--footer-link-color, #fff);
+}
+
+.site-footer__links a {
+  margin-inline: 10px;
+  transition: opacity 0.2s ease;
+}
+
+.site-footer__links a:hover {
+  opacity: 0.7;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .site-footer {
+    padding-inline: var(--footer-gutter-tablet, 20px);
+    padding-block: var(--footer-pt-tablet, 60px) var(--footer-pb-tablet, 80px);
+  }
+  .site-footer__inner {
+    max-width: 1024px;
+    padding-right: var(--footer-offset-tablet, 60px);
+  }
+}
+
+@media (max-width: 767px) {
+  .site-footer {
+    padding-inline: var(--footer-gutter-mobile, 20px);
+    padding-block: var(--footer-pt-mobile, 60px) var(--footer-pb-mobile, 40px);
+  }
+  .site-footer__inner {
+    padding-right: var(--footer-offset-mobile, 0px);
+  }
+  .site-footer__social {
+    gap: 5px;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Floating WhatsApp button
+ * ------------------------------------------------------------------ */
+.wa-float {
+  position: fixed;
+  bottom: var(--wa-inset, 18px);
+  right: var(--wa-inset, 18px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--wa-size, 55px);
+  height: var(--wa-size, 55px);
+  border-radius: 50%;
+  background: var(--wa-color, #25d366);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.wa-float:hover {
+  transform: scale(1.06);
+}
+
+.wa-float svg {
+  width: var(--wa-icon, 35px);
+  height: var(--wa-icon, 35px);
+  fill: #fff;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

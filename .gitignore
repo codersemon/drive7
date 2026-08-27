@@ -1,0 +1,19 @@
+# dependencies
+node_modules
+
+# next
+.next
+next-env.d.ts
+*.tsbuildinfo
+
+# env — never commit; .env.example documents the required keys
+.env
+.env.*
+!.env.example
+
+# local uploads (production uses Neon object storage)
+/public/media
+
+# misc
+.DS_Store
+.vercel
