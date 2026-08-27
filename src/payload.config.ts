@@ -18,12 +18,25 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 /**
+ * Reads an environment variable, trimming whitespace and any surrounding
+ * quotes. Neon hands out its storage credentials pre-quoted
+ * (`AWS_ENDPOINT_URL_S3="https://…"`); dotenv strips those locally, but hosts
+ * that store values verbatim keep them, which silently corrupts every URL and
+ * signature built from them.
+ */
+const env = (key: string): string | undefined => {
+  const raw = process.env[key]?.trim()
+  if (!raw) return undefined
+  return raw.replace(/^(['"])(.*)\1$/s, '$2')
+}
+
+/**
  * Neon object storage is S3-compatible and path-style addressed. Uploads fall
  * back to the local `public/media` folder when no bucket is configured, so the
  * project runs with nothing but DATABASE_URL set.
  */
-const s3Bucket = process.env.S3_BUCKET
-const s3Endpoint = process.env.AWS_ENDPOINT_URL_S3
+const s3Bucket = env('S3_BUCKET')
+const s3Endpoint = env('AWS_ENDPOINT_URL_S3')
 
 const storagePlugins =
   s3Bucket && s3Endpoint
@@ -49,11 +62,11 @@ const storagePlugins =
           clientUploads: true,
           config: {
             endpoint: s3Endpoint,
-            region: process.env.AWS_REGION || 'us-east-2',
+            region: env('AWS_REGION') || 'us-east-2',
             forcePathStyle: true,
             credentials: {
-              accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+              accessKeyId: env('AWS_ACCESS_KEY_ID') || '',
+              secretAccessKey: env('AWS_SECRET_ACCESS_KEY') || '',
             },
           },
         }),
@@ -83,9 +96,9 @@ export default buildConfig({
   globals: [Header, Footer, SiteSettings],
   editor: lexicalEditor(),
   db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URL || '' },
+    pool: { connectionString: env('DATABASE_URL') || '' },
   }),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: env('PAYLOAD_SECRET') || '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   sharp,
   plugins: storagePlugins,
